@@ -93,7 +93,7 @@ export default function Home() {
       setDocuments([])
       setSearchResults([])
       setSearchQuery('')
-    } catch (err) {
+    } catch {
       setError('Failed to clear documents')
     }
   }
