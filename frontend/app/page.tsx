@@ -93,7 +93,7 @@ export default function Home() {
       setDocuments([])
       setSearchResults([])
       setSearchQuery('')
-    } catch (err) {
+    } catch {
       setError('Failed to clear documents')
     }
   }
@@ -223,10 +223,10 @@ export default function Home() {
           {/* Header */}
           <div className="text-center lg:text-left mb-8">
             <h1 className="text-3xl font-bold text-slate-900">
-              Evidence Search
+              Manifold
             </h1>
             <p className="text-slate-600">
-              Search across all uploaded case files instantly.
+              Search across all uploaded documents instantly.
             </p>
           </div>
 

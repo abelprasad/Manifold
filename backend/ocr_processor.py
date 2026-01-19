@@ -10,11 +10,14 @@ import io
 import os
 from typing import List, Dict, Tuple
 
-# Configure Tesseract path for Windows
-# Update this path if your Tesseract is installed elsewhere
-TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# Configure Tesseract path from environment variable or use default for Windows
+TESSERACT_PATH = os.getenv("TESSERACT_PATH", r"C:\Program Files\Tesseract-OCR\tesseract.exe")
 if os.path.exists(TESSERACT_PATH):
     pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+else:
+    # If the path doesn't exist, pytesseract will fall back to searching the system's PATH.
+    # We can add a log or print statement here if verbose feedback is needed.
+    print(f"Warning: Tesseract path '{TESSERACT_PATH}' not found. Falling back to system PATH.")
 
 
 class PDFProcessor:

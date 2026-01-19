@@ -1,6 +1,6 @@
-# Public Defender Evidence Search
+# Manifold
 
-A powerful, AI-driven semantic search tool designed for public defenders to quickly analyze and search through legal discovery documents (PDFs). Unlike simple keyword searches, this tool uses natural language processing to understand the *meaning* of your query, helping you find relevant evidence even if the exact words don't match.
+A powerful, AI-driven semantic search tool designed to quickly analyze and search through PDF documents. Unlike simple keyword searches, this tool uses natural language processing to understand the *meaning* of your query, helping you find relevant evidence even if the exact words don't match.
 
 ![Project Status](https://img.shields.io/badge/Status-Prototype-orange)
 ![Python](https://img.shields.io/badge/Backend-FastAPI-green)
@@ -37,7 +37,6 @@ Before setting up, ensure you have the following installed:
 2.  **Node.js 18+** & **npm**
 3.  **Tesseract OCR Engine**:
     *   **Windows**: Download and install from [UB-Mannheim/tesseract](https://github.com/UB-Mannheim/tesseract/wiki).
-        *   *Note*: The backend defaults to `C:\Program Files\Tesseract-OCR\tesseract.exe`. If you install elsewhere, update `backend/ocr_processor.py`.
     *   **macOS**: `brew install tesseract`
     *   **Linux**: `sudo apt-get install tesseract-ocr`
 
@@ -46,7 +45,7 @@ Before setting up, ensure you have the following installed:
 ### 1. Clone the Repository
 ```bash
 git clone <repository-url>
-cd pd-evidence-search
+cd manifold
 ```
 
 ### 2. Backend Setup
@@ -116,7 +115,7 @@ npm run dev
 ## 📂 Project Structure
 
 ```
-pd-evidence-search/
+manifold/
 ├── backend/
 │   ├── main.py              # FastAPI entry point & endpoints
 │   ├── ocr_processor.py     # PDF reading & OCR logic
@@ -133,8 +132,24 @@ pd-evidence-search/
 ## 🔧 Troubleshooting
 
 *   **Tesseract Not Found Error**:
-    *   Ensure Tesseract is installed.
-    *   Check `backend/ocr_processor.py` line 16. Update `TESSERACT_PATH` to match your installation location.
+    *   This error means the backend couldn't find the Tesseract OCR engine.
+    *   **1. Ensure Tesseract is in your system's PATH**: The easiest solution is to add your Tesseract installation directory (e.g., `C:\Program Files\Tesseract-OCR`) to your system's `PATH` environment variable. The application will find it automatically.
+    *   **2. Set the `TESSERACT_PATH` Environment Variable**: If you don't want to modify your system `PATH`, you can tell the application exactly where to find the executable.
+        *   **Windows (Command Prompt)**: 
+            ```cmd
+            set TESSERACT_PATH="C:\path\to\your\Tesseract-OCR\tesseract.exe"
+            uvicorn main:app --reload
+            ```
+        *   **Windows (PowerShell)**:
+            ```powershell
+            $env:TESSERACT_PATH="C:\path\to\your\Tesseract-OCR\tesseract.exe"
+            uvicorn main:app --reload
+            ```
+        *   **macOS/Linux**:
+            ```bash
+            export TESSERACT_PATH="/path/to/your/tesseract"
+            uvicorn main:app --reload
+            ```
 *   **Upload Fails**:
     *   Check the backend console logs. Ensure the `backend/uploads` directory is writable.
 *   **Slow Search**:

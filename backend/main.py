@@ -1,5 +1,5 @@
 """
-FastAPI Server - Public Defender Evidence Search Portal
+FastAPI Server - Manifold
 Handles PDF uploads, processing, and semantic search
 """
 
@@ -18,8 +18,8 @@ from search_engine import SemanticSearchEngine
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="PD Evidence Search API",
-    description="Semantic search for legal discovery documents",
+    title="Manifold API",
+    description="Semantic search for PDF documents",
     version="1.1.0"
 )
 
@@ -72,7 +72,7 @@ class DocumentInfo(BaseModel):
 async def root():
     """Health check endpoint"""
     return {
-        "message": "PD Evidence Search API",
+        "message": "Manifold API",
         "status": "running",
         "version": "1.1.0",
         "documents_loaded": len(uploaded_documents)
