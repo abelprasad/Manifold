@@ -28,28 +28,44 @@ class SemanticSearchEngine:
         self.embeddings = None
         print("Model loaded successfully!")
     
-    def index_documents(self, chunks: List[Dict]) -> None:
+    def add_documents(self, new_chunks: List[Dict]) -> None:
         """
-        Create embeddings for all document chunks
+        Add new chunks to the existing index
         
         Args:
-            chunks: List of chunk dicts from PDFProcessor.chunk_text()
+            new_chunks: List of chunk dicts to add
         """
-        print(f"Indexing {len(chunks)} document chunks...")
-        
-        self.chunks = chunks
+        if not new_chunks:
+            print("No chunks to add.")
+            return
+
+        print(f"Adding {len(new_chunks)} chunks to index...")
         
         # Extract text from chunks
-        texts = [chunk["text"] for chunk in chunks]
+        texts = [chunk["text"] for chunk in new_chunks]
         
-        # Generate embeddings (this is the "AI magic")
-        self.embeddings = self.model.encode(
+        # Generate embeddings for new chunks
+        new_embeddings = self.model.encode(
             texts,
             convert_to_tensor=True,
             show_progress_bar=True
         )
         
-        print(f"Indexing complete! {len(chunks)} chunks ready for search.")
+        # Update state (append or initialize)
+        if self.embeddings is None:
+            self.chunks = new_chunks
+            self.embeddings = new_embeddings
+        else:
+            self.chunks.extend(new_chunks)
+            self.embeddings = torch.cat((self.embeddings, new_embeddings), dim=0)
+        
+        print(f"Indexing complete! Total {len(self.chunks)} chunks ready for search.")
+    
+    def clear_index(self) -> None:
+        """Clear all indexed documents"""
+        self.chunks = []
+        self.embeddings = None
+        print("Index cleared.")
     
     def search(self, query: str, top_k: int = 10) -> List[Dict]:
         """
