@@ -135,6 +135,86 @@ class SemanticSearchEngine:
         
         return results
     
+    def get_chunk_count(self) -> int:
+        """Get the total number of indexed chunks"""
+        return len(self.chunks)
+
+    def find_semantic_highlights(self, query: str, text: str, top_k: int = 5, min_score: float = 0.3) -> List[Dict]:
+        """
+        Find phrases in text that are semantically similar to the query.
+        Returns list of {phrase, score} for highlighting.
+        """
+        import re
+
+        # Extract candidate phrases (n-grams from 1-5 words)
+        words = text.split()
+        candidates = []
+
+        # Single words (filter out short/common words)
+        stop_words = {'the', 'a', 'an', 'is', 'was', 'were', 'are', 'been', 'be', 'have', 'has', 'had',
+                      'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must',
+                      'shall', 'can', 'need', 'dare', 'ought', 'used', 'to', 'of', 'in', 'for', 'on',
+                      'with', 'at', 'by', 'from', 'as', 'into', 'through', 'during', 'before', 'after',
+                      'above', 'below', 'between', 'under', 'again', 'further', 'then', 'once', 'and',
+                      'but', 'or', 'nor', 'so', 'yet', 'both', 'either', 'neither', 'not', 'only', 'own',
+                      'same', 'than', 'too', 'very', 'just', 'also', 'now', 'here', 'there', 'when',
+                      'where', 'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more', 'most',
+                      'other', 'some', 'such', 'no', 'any', 'only', 'this', 'that', 'these', 'those',
+                      'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your',
+                      'yours', 'yourself', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers',
+                      'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves',
+                      'what', 'which', 'who', 'whom', 'whose', 'being', 'having', 'doing'}
+
+        for word in words:
+            clean_word = re.sub(r'[^\w]', '', word.lower())
+            if len(clean_word) >= 3 and clean_word not in stop_words:
+                candidates.append(word)
+
+        # 2-3 word phrases
+        for n in [2, 3]:
+            for i in range(len(words) - n + 1):
+                phrase = ' '.join(words[i:i+n])
+                # Only include if it has meaningful content
+                phrase_words = [re.sub(r'[^\w]', '', w.lower()) for w in words[i:i+n]]
+                if any(len(w) >= 3 and w not in stop_words for w in phrase_words):
+                    candidates.append(phrase)
+
+        if not candidates:
+            return []
+
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_candidates = []
+        for c in candidates:
+            c_lower = c.lower()
+            if c_lower not in seen:
+                seen.add(c_lower)
+                unique_candidates.append(c)
+
+        # Limit candidates to avoid slow encoding
+        unique_candidates = unique_candidates[:100]
+
+        # Encode query and candidates
+        query_embedding = self.model.encode(query, convert_to_tensor=True)
+        candidate_embeddings = self.model.encode(unique_candidates, convert_to_tensor=True)
+
+        # Calculate similarities
+        similarities = util.cos_sim(query_embedding, candidate_embeddings)[0]
+
+        # Get top matches above threshold
+        highlights = []
+        for idx, score in enumerate(similarities):
+            score_val = float(score)
+            if score_val >= min_score:
+                highlights.append({
+                    "phrase": unique_candidates[idx],
+                    "score": score_val
+                })
+
+        # Sort by score and return top_k
+        highlights.sort(key=lambda x: x["score"], reverse=True)
+        return highlights[:top_k]
+
     def get_stats(self) -> Dict:
         """Get statistics about indexed documents"""
         if not self.chunks:
