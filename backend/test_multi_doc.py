@@ -66,7 +66,14 @@ class TestMultiDocumentSearch(unittest.TestCase):
         print("\n--- Testing Multi-Document Workflow ---")
 
         # Configure the mock to return the correct mock processor based on filename
-        MockPDFProcessor.side_effect = lambda path: create_mock_pdf_processor(os.path.basename(path))
+        # Extract original filename by removing timestamp prefix (format: YYYYMMDD_HHMMSS_)
+        def get_original_filename(path):
+            basename = os.path.basename(path)
+            # Remove timestamp prefix if present (19 chars: YYYYMMDD_HHMMSS_)
+            if len(basename) > 19 and basename[8] == '_' and basename[15] == '_':
+                return basename[16:]
+            return basename
+        MockPDFProcessor.side_effect = lambda path: create_mock_pdf_processor(get_original_filename(path))
 
         # --- Step 1: Upload Documents ---
         print("1. Uploading documents...")
@@ -112,7 +119,7 @@ class TestMultiDocumentSearch(unittest.TestCase):
         self.assertEqual(top_result['filename'], POLICE_REPORT_FILENAME)
         self.assertIn('knife', top_result['text'].lower())
 
-        print("\n✅ SUCCESS: Multi-document workflow tests passed!")
+        print("\nSUCCESS: Multi-document workflow tests passed!")
 
 if __name__ == '__main__':
     unittest.main()
